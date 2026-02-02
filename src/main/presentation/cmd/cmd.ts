@@ -1,4 +1,5 @@
 import express from "express"
+import cookieParser from "cookie-parser"
 import http from "http"
 import logger from "morgan"
 import bodyParser from "body-parser"
@@ -22,6 +23,7 @@ class CmdRest {
     this.app.use(logger("dev"))
     this.app.use(bodyParser.json({ limit: "100mb" }))
     this.app.use(bodyParser.urlencoded({ extended: false }))
+    this.app.use(cookieParser())
   }
 
   public server(): void {

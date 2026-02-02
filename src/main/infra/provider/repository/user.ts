@@ -1,6 +1,6 @@
 import { UserEntity } from "../../../core/entities/user"
-import { CreateUserUseCaseRepositoryInterface, LoginUserUseCaseRepositoryInterface } from "../../../core/usecase/repository/user"
-import { createUser, getUserByEmail } from "../../internal/database/postgresql/user"
+import { CreateUserUseCaseRepositoryInterface, GetUserByIDUseCaseRepositoryInterface, LoginUserUseCaseRepositoryInterface } from "../../../core/usecase/repository/user"
+import { createUser, getUserByEmail, getUserByID } from "../../internal/database/postgresql/user"
 import { saveRefreshToken } from "../../internal/database/redis/user"
 
 class LoginUserUseCaseRepository implements LoginUserUseCaseRepositoryInterface {
@@ -18,7 +18,14 @@ class CreateUserUseCaseRepository implements CreateUserUseCaseRepositoryInterfac
     }
 }
 
+class GetUserByIDUseCaseRepository implements GetUserByIDUseCaseRepositoryInterface {
+    async getUserByID(userID: string): Promise<UserEntity | null> {
+        return await getUserByID(userID)
+    }
+}
+
 export {
     LoginUserUseCaseRepository,
-    CreateUserUseCaseRepository
+    CreateUserUseCaseRepository,
+    GetUserByIDUseCaseRepository
 }

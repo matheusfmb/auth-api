@@ -47,9 +47,29 @@ class CreateUserUseCaseResponse {
    }    
 }
 
+class GetUserByIDUseCaseRequest {
+    public userID: string
+
+    constructor(userID: string) {
+        this.userID = userID
+    }
+}
+
+class GetUserByIDUseCaseResponse {
+    public user: UserEntity | null
+    public error: ErrorEntity | null
+
+    constructor(user: UserEntity | null, error: ErrorEntity | null) {
+        this.user = user
+        this.error = error
+    }   
+}
+
 export {
     LoginUserUseCaseRequest,
     LoginUserUseCaseResponse,
     CreateUserUseCaseRequest,
-    CreateUserUseCaseResponse
+    CreateUserUseCaseResponse,
+    GetUserByIDUseCaseRequest,
+    GetUserByIDUseCaseResponse
 }

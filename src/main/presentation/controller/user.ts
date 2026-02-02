@@ -1,10 +1,10 @@
-import { CreateUserUseCaseRequest, CreateUserUseCaseResponse, LoginUserUseCaseRequest } from "../../core/usecase/ucio/user"
-import { CreateUserUseCaseValidate, LoginUserUseCaseValidate } from "../../infra/provider/validate/user"
-import { CreateUserUseCaseCommon, LoginUserUseCaseCommon } from "../../infra/provider/common/user"
+import { CreateUserUseCaseRequest, CreateUserUseCaseResponse, GetUserByIDUseCaseRequest, LoginUserUseCaseRequest } from "../../core/usecase/ucio/user"
+import { CreateUserUseCaseValidate, GetUserByIDUseCaseValidate, LoginUserUseCaseValidate } from "../../infra/provider/validate/user"
+import { CreateUserUseCaseCommon, GetUserByIDUseCaseCommon, LoginUserUseCaseCommon } from "../../infra/provider/common/user"
 import { Request, Response } from 'express'
-import { CreateUserUseCaseRepository, LoginUserUseCaseRepository } from "../../infra/provider/repository/user"
-import { CreateUserUseCase, LoginUserUseCase } from "../../core/usecase/user"
-import { HttpErrorMapper } from "../http/http_mappers"
+import { CreateUserUseCaseRepository, GetUserByIDUseCaseRepository, LoginUserUseCaseRepository } from "../../infra/provider/repository/user"
+import { CreateUserUseCase, GetUserByIDUseCase, LoginUserUseCase } from "../../core/usecase/user"
+import { mapErrorToHttp } from "../http/http_mappers"
 import { HttpResponseFactory } from "../http/http_response"
 
 class LoginController {
@@ -18,23 +18,22 @@ class LoginController {
 
         const usecase = new LoginUserUseCase(common, repository, validate)
 
-        const result = await usecase.login(ucReq)
+        const ucRes = await usecase.login(ucReq)
 
-        if (result.error) {
-            const http = HttpErrorMapper.map(result.error)
+        if (ucRes.error) {
+            const http = mapErrorToHttp(ucRes.error)
             return res.status(http.statusCode).json(http.body)
         }
 
-        if (result.refreshToken) {
-            res.cookie('refreshToken', result.refreshToken, {
+        if (ucRes.refreshToken) {
+            res.cookie('refreshToken', ucRes.refreshToken, {
                 httpOnly: true,
                 secure: false, //develop only
                 sameSite: 'strict',
-                path: '/auth/refresh', // to be implemented
                 maxAge: 3 * 60 * 60 * 1000
             })
         }
-        const http = HttpResponseFactory.ok({ accessToken: result.accessToken })
+        const http = HttpResponseFactory.ok({ accessToken: ucRes.accessToken })
         return res.status(http.statusCode).json(http.body)
     }
 }
@@ -53,7 +52,7 @@ class CreateUserController {
         const ucRes = await usecase.createUser(ucReq)
 
         if (ucRes.error) {
-            const http = HttpErrorMapper.map(ucRes.error)
+            const http = mapErrorToHttp(ucRes.error)
             return res.status(http.statusCode).json(http.body)
         }
         const http = HttpResponseFactory.created(ucRes.user)
@@ -61,7 +60,29 @@ class CreateUserController {
     }
 }
 
+class GetUserByIDController {
+    async getUserByID(req: Request, res: Response) {
+        const { userID } = req.params
+
+        const ucReq = new GetUserByIDUseCaseRequest(userID)
+        const common = new GetUserByIDUseCaseCommon()
+        const validate = new GetUserByIDUseCaseValidate()
+        const repository = new GetUserByIDUseCaseRepository()   
+        
+        const usecase = new GetUserByIDUseCase(common, repository, validate)
+
+        const ucRes = await usecase.getUserByID(ucReq)  
+       if (ucRes.error) {
+            const http = mapErrorToHttp(ucRes.error)
+            return res.status(http.statusCode).json(http.body)
+        }
+        const http = HttpResponseFactory.ok(ucRes.user)
+        return res.status(http.statusCode).json(http.body)
+    }
+}
+
 export {
     LoginController,
-    CreateUserController
+    CreateUserController,
+    GetUserByIDController
 }

@@ -1,12 +1,11 @@
 import { EXPIRE_IN_1H, EXPIRE_IN_3H } from "../constants/util"
-import { InternalServerError, TAG_PRE_CONDITION_ERROR, UnauthorizedError } from "../entities/error"
+import { InternalServerError, NotFoundError, TAG_PRE_CONDITION_ERROR, UnauthorizedError } from "../entities/error"
 import { TokenPayloadEntity } from "../entities/token"
 import { UserEntity } from "../entities/user"
-import { CreateUserUseCaseCommonInterface, LoginUserUseCaseCommonInterface } from "./common/user"
-import { CreateUserUseCaseRepositoryInterface, LoginUserUseCaseRepositoryInterface } from "./repository/user"
-import { CreateUserUseCaseRequest, CreateUserUseCaseResponse, LoginUserUseCaseRequest, LoginUserUseCaseResponse } from "./ucio/user"
-import { CreateUserUseCaseValidateInterface, LoginUserUseCaseValidateInterface } from "./validate/user"
-
+import { CreateUserUseCaseCommonInterface, GetUserByIDUseCaseCommonInterface, LoginUserUseCaseCommonInterface } from "./common/user"
+import { CreateUserUseCaseRepositoryInterface, GetUserByIDUseCaseRepositoryInterface, LoginUserUseCaseRepositoryInterface } from "./repository/user"
+import { CreateUserUseCaseRequest, CreateUserUseCaseResponse, GetUserByIDUseCaseRequest, GetUserByIDUseCaseResponse, LoginUserUseCaseRequest, LoginUserUseCaseResponse } from "./ucio/user"
+import { CreateUserUseCaseValidateInterface, GetUserByIDUseCaseValidateInterface, LoginUserUseCaseValidateInterface } from "./validate/user"
 
 class LoginUserUseCase {
   constructor(
@@ -55,8 +54,6 @@ class LoginUserUseCase {
   }
 }
 
-
-
 class CreateUserUseCase {
     public common: CreateUserUseCaseCommonInterface
     public repository: CreateUserUseCaseRepositoryInterface
@@ -93,7 +90,43 @@ class CreateUserUseCase {
     }
 }
 
+class GetUserByIDUseCase {
+  public common: GetUserByIDUseCaseCommonInterface
+  public repository: GetUserByIDUseCaseRepositoryInterface
+  public validate: GetUserByIDUseCaseValidateInterface
+
+  constructor(common: GetUserByIDUseCaseCommonInterface, repository: GetUserByIDUseCaseRepositoryInterface, validate: GetUserByIDUseCaseValidateInterface) {
+      this.common = common
+      this.repository = repository
+      this.validate = validate
+  } 
+
+  async getUserByID(req: GetUserByIDUseCaseRequest): Promise<GetUserByIDUseCaseResponse> {
+    try {
+
+      const validationError = this.validate.getUserByIDByID(req)
+
+      if (validationError) {
+        console.log(TAG_PRE_CONDITION_ERROR, validationError.message)
+        const errorEntity = this.common.mapValidationErrorToEntity(validationError)
+        return new GetUserByIDUseCaseResponse(null, errorEntity)
+      }
+      const user = await this.repository.getUserByID(req.userID)
+
+      if(user && user.ID){
+        return new GetUserByIDUseCaseResponse(user, null)
+      } else {
+        return new GetUserByIDUseCaseResponse(user, new NotFoundError("User not found"))
+      }
+    } catch(error: any) {
+      console.log(TAG_PRE_CONDITION_ERROR, error)
+      return new GetUserByIDUseCaseResponse(null, new InternalServerError(error.message))
+    } 
+  }
+}
+
 export {
     LoginUserUseCase,
-    CreateUserUseCase
+    CreateUserUseCase,
+    GetUserByIDUseCase
 }

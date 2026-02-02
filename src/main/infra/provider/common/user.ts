@@ -1,6 +1,6 @@
 import { v4 } from "uuid"
 import bcrypt from "bcryptjs"
-import { CreateUserUseCaseCommonInterface, LoginUserUseCaseCommonInterface } from "../../../core/usecase/common/user"
+import { CreateUserUseCaseCommonInterface, GetUserByIDUseCaseCommonInterface, LoginUserUseCaseCommonInterface } from "../../../core/usecase/common/user"
 import { newDate } from "../../internal/common/date"
 import { TokenPayloadEntity } from "../../../core/entities/token"
 import { encrypt } from "../../internal/jwt/jwt"
@@ -46,8 +46,14 @@ class CreateUserUseCaseCommon implements CreateUserUseCaseCommonInterface {
     }
 }
 
+class GetUserByIDUseCaseCommon implements GetUserByIDUseCaseCommonInterface {
+    mapValidationErrorToEntity(validationError: ValidationError): ErrorEntity {
+        return mapValidationErrorToEntity(validationError)
+    }
+}
 
 export {
     LoginUserUseCaseCommon,
-    CreateUserUseCaseCommon
+    CreateUserUseCaseCommon,
+    GetUserByIDUseCaseCommon
 }

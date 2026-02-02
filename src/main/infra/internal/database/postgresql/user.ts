@@ -22,4 +22,14 @@ async function getUserByEmail(email: string): Promise<UserEntity | null> {
   return toUserEntity(user)
 }
 
-export { createUser, getUserByEmail }
+async function getUserByID(userID: string): Promise<UserEntity | null> {
+  const repository = await Connection.getRepository(UserModel)
+
+  const user = await repository.findOneBy({ ID: userID })
+
+  if (!user) return null
+
+  return toUserEntity(user)
+}
+
+export { createUser, getUserByEmail, getUserByID }

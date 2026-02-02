@@ -1,5 +1,6 @@
 import { ErrorEntity } from "../../entities/error"
 import { TokenPayloadEntity } from "../../entities/token"
+import { UserEntity } from "../../entities/user"
 import { ValidationError } from "../../enums/error"
 
 interface LoginUserUseCaseCommonInterface {
@@ -17,7 +18,12 @@ interface CreateUserUseCaseCommonInterface {
     mapValidationErrorToEntity(validationError: ValidationError): ErrorEntity
 }
 
+interface GetUserByIDUseCaseCommonInterface {
+    mapValidationErrorToEntity(validationError: ValidationError): ErrorEntity
+}
+
 export {
     LoginUserUseCaseCommonInterface,
-    CreateUserUseCaseCommonInterface
+    CreateUserUseCaseCommonInterface,
+    GetUserByIDUseCaseCommonInterface
 }

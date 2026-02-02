@@ -9,7 +9,12 @@ interface CreateUserUseCaseRepositoryInterface {
     createUser(user: UserEntity): Promise<UserEntity>
 }
 
+interface GetUserByIDUseCaseRepositoryInterface {
+    getUserByID(userID: string): Promise<UserEntity | null>
+}
+
 export {
     LoginUserUseCaseRepositoryInterface,
-    CreateUserUseCaseRepositoryInterface
+    CreateUserUseCaseRepositoryInterface,
+    GetUserByIDUseCaseRepositoryInterface
 }

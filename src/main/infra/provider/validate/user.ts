@@ -1,6 +1,6 @@
 import { ValidationError, ValidationErrorType } from "../../../core/enums/error"
-import { CreateUserUseCaseRequest, LoginUserUseCaseRequest } from "../../../core/usecase/ucio/user"
-import { CreateUserUseCaseValidateInterface, LoginUserUseCaseValidateInterface } from "../../../core/usecase/validate/user"
+import { CreateUserUseCaseRequest, GetUserByIDUseCaseRequest, LoginUserUseCaseRequest } from "../../../core/usecase/ucio/user"
+import { CreateUserUseCaseValidateInterface, GetUserByIDUseCaseValidateInterface, LoginUserUseCaseValidateInterface } from "../../../core/usecase/validate/user"
 import { getUserByEmail } from "../../internal/database/postgresql/user"
 import { checkStringEmpty } from "./validate"
 
@@ -39,4 +39,13 @@ class CreateUserUseCaseValidate implements CreateUserUseCaseValidateInterface {
   }
 }
 
-export { LoginUserUseCaseValidate, CreateUserUseCaseValidate }
+class GetUserByIDUseCaseValidate implements GetUserByIDUseCaseValidateInterface {
+  getUserByIDByID(req: GetUserByIDUseCaseRequest): ValidationError | null {
+    if (checkStringEmpty(req.userID)) {
+      return { type: ValidationErrorType.PRECONDITION, message: "UserID is required." }
+    }
+    return null
+  }
+}
+
+export { LoginUserUseCaseValidate, CreateUserUseCaseValidate, GetUserByIDUseCaseValidate }

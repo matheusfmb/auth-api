@@ -43,12 +43,21 @@ class UnauthorizedError extends ErrorEntity {
   }
 }
 
+class NotFoundError extends ErrorEntity {
+  static NOT_FOUND_ERROR = 5
+
+  constructor(message: string) {
+    super(NotFoundError.NOT_FOUND_ERROR, message)
+  }
+}
+
 export { 
   ErrorEntity,
   PreconditionError,
   InternalServerError,
   ConflictError,
   UnauthorizedError,
+  NotFoundError,
   TAG_INTERNAL_SERVER_ERROR,
   TAG_PRE_CONDITION_ERROR
 }
