@@ -11,9 +11,6 @@ class AuthMiddlewareController {
     const { authorization } = req.headers
     const refreshToken = req.cookies?.refreshToken ?? ''
 
-    console.log("authorization", authorization)
-    console.log("req.cookies", req.cookies)
-    
     const accessToken = authorization?.replace('Bearer ', '') ?? ''
 
     const ucReq = new AuthMiddlewareUseCaseRequest(accessToken, refreshToken)
