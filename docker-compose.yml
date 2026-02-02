@@ -1,0 +1,14 @@
+version: "3"
+services:
+  auth-api:
+    image: auth-api:${VERSION}
+    env_file: 
+      - build/docker/delivery/rest/env.env
+    build:
+      context: .
+      dockerfile: build/docker/delivery/rest/Dockerfile
+      args:
+        - CMD=rest
+        - CMD_VERSION=${VERSION}
+    ports:
+      - "8100:8100"
