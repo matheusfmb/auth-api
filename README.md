@@ -80,6 +80,16 @@ A API expõe rotas para as seguintes funcionalidades:
   - `GET /:userID`: Rota protegida que retorna os dados de um usuário específico.
     - **Middleware de Autenticação:** Esta rota implementa o middleware que valida o token de acesso e, transparentemente, realiza o *refresh* do token caso necessário, garantindo segurança e fluidez na sessão.
 
+## 🔍 Observabilidade e Segurança
+
+- **Cookies e tokens:** Como o repositório é de portfólio, o `refreshToken` permanece com `secure: false` para facilitar os testes locais. Em produção, a configuração prevista inclui `secure: true`, `sameSite=strict` ou `sameSite=lax`  e política de rotação controlada.
+- **Variáveis sensíveis:** Segredos e chaves JWT não estão versionados em `.env` por escolha deliberada. Em um ambiente real, os valores seriam injetados via variáveis de ambiente.
+
+## 🗓️ Para Implementar
+
+- **Observabilidade com OpenTelemetry:** Exportar métricas e traces (ex.: fluxo de `POST /auth/login` e `AuthMiddleware`) para facilitar troubleshooting e demonstrar rastreabilidade.
+- **Rate limiting:** Adicionar um rate limiter baseado em Redis/`express-rate-limit` para proteger endpoints sensíveis contra brute force e abuso.
+
 ## 📝 Autor
 
 Desenvolvido por **Matheus Barros**.
