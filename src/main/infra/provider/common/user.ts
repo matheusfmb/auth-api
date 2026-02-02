@@ -4,6 +4,9 @@ import { CreateUserUseCaseCommonInterface, LoginUserUseCaseCommonInterface } fro
 import { newDate } from "../../internal/common/date"
 import { TokenPayloadEntity } from "../../../core/entities/token"
 import { encrypt } from "../../internal/jwt/jwt"
+import { ErrorEntity } from "../../../core/entities/error"
+import { ValidationError } from "../../../core/enums/error"
+import { mapValidationErrorToEntity } from "../validate/validate"
 
 class LoginUserUseCaseCommon implements LoginUserUseCaseCommonInterface {
     async comparePassword(password: string, hash: string): Promise<boolean> {
@@ -15,8 +18,13 @@ class LoginUserUseCaseCommon implements LoginUserUseCaseCommonInterface {
     generateUUID(): string {
         return v4()
     }
+
     newDate(): Date {
         return newDate()
+    }
+
+    mapValidationErrorToEntity(validationError: ValidationError): ErrorEntity {
+        return mapValidationErrorToEntity(validationError)
     }
 }
 
@@ -28,8 +36,13 @@ class CreateUserUseCaseCommon implements CreateUserUseCaseCommonInterface {
     generateUUID(): string {
         return v4()
     }
+
     newDate(): Date {
         return newDate()
+    }
+
+    mapValidationErrorToEntity(validationError: ValidationError): ErrorEntity {
+        return mapValidationErrorToEntity(validationError)
     }
 }
 

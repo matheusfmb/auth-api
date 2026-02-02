@@ -4,6 +4,8 @@ import { CreateUserUseCaseCommon, LoginUserUseCaseCommon } from "../../infra/pro
 import { Request, Response } from 'express'
 import { CreateUserUseCaseRepository, LoginUserUseCaseRepository } from "../../infra/provider/repository/user"
 import { CreateUserUseCase, LoginUserUseCase } from "../../core/usecase/user"
+import { HttpErrorMapper } from "../http/http_mappers"
+import { HttpResponseFactory } from "../http/http_response"
 
 class LoginController {
     async login(req: Request, res: Response) {
@@ -19,7 +21,8 @@ class LoginController {
         const result = await usecase.login(ucReq)
 
         if (result.error) {
-            return res.status(401).json({ error: result.error.message })
+            const http = HttpErrorMapper.map(result.error)
+            return res.status(http.statusCode).json(http.body)
         }
 
         if (result.refreshToken) {
@@ -31,7 +34,8 @@ class LoginController {
                 maxAge: 3 * 60 * 60 * 1000
             })
         }
-        return res.json({ accessToken: result.accessToken })
+        const http = HttpResponseFactory.ok({ accessToken: result.accessToken })
+        return res.status(http.statusCode).json(http.body)
     }
 }
 
@@ -48,7 +52,12 @@ class CreateUserController {
 
         const ucRes = await usecase.createUser(ucReq)
 
-        return res.status(200).json(ucRes)
+        if (ucRes.error) {
+            const http = HttpErrorMapper.map(ucRes.error)
+            return res.status(http.statusCode).json(http.body)
+        }
+        const http = HttpResponseFactory.created(ucRes.user)
+        return res.status(http.statusCode).json(http.body)
     }
 }
 

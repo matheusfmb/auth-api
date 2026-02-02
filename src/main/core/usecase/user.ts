@@ -1,11 +1,12 @@
 import { EXPIRE_IN_1H, EXPIRE_IN_3H } from "../constants/util"
-import { InternalServerError, PreconditionError, TAG_PRE_CONDITION_ERROR } from "../entities/error"
+import { InternalServerError, TAG_PRE_CONDITION_ERROR, UnauthorizedError } from "../entities/error"
 import { TokenPayloadEntity } from "../entities/token"
 import { UserEntity } from "../entities/user"
 import { CreateUserUseCaseCommonInterface, LoginUserUseCaseCommonInterface } from "./common/user"
 import { CreateUserUseCaseRepositoryInterface, LoginUserUseCaseRepositoryInterface } from "./repository/user"
 import { CreateUserUseCaseRequest, CreateUserUseCaseResponse, LoginUserUseCaseRequest, LoginUserUseCaseResponse } from "./ucio/user"
 import { CreateUserUseCaseValidateInterface, LoginUserUseCaseValidateInterface } from "./validate/user"
+
 
 class LoginUserUseCase {
   constructor(
@@ -16,22 +17,23 @@ class LoginUserUseCase {
 
   async login(req: LoginUserUseCaseRequest): Promise<LoginUserUseCaseResponse> {
     try {
-      const messageError = this.validate.login(req)
+      const validationError = this.validate.login(req)
 
-      if (messageError) {
-        return new LoginUserUseCaseResponse(null, null, new PreconditionError(messageError))
+      if (validationError) {
+        const errorEntity = this.common.mapValidationErrorToEntity(validationError)
+        return new LoginUserUseCaseResponse(null, null, errorEntity)
       }
 
       const user = await this.repository.getUserByEmail(req.email)
 
       if (!user) { 
-        return new LoginUserUseCaseResponse(null, null, new PreconditionError("Invalid credentials"))
+        return new LoginUserUseCaseResponse(null, null, new UnauthorizedError("Invalid credentials"))
       }
 
       const passwordValid = await this.common.comparePassword(req.password, user.password)
 
       if (!passwordValid) {
-        return new LoginUserUseCaseResponse(null, null, new PreconditionError("Invalid credentials"))
+        return new LoginUserUseCaseResponse(null, null, new UnauthorizedError("Invalid credentials"))
       }
 
       const now = this.common.newDate()
@@ -68,11 +70,12 @@ class CreateUserUseCase {
 
     async createUser(req: CreateUserUseCaseRequest): Promise<CreateUserUseCaseResponse> {
         try {
-            const messageError = await this.validate.createUser(req)
+            const validationError = await this.validate.createUser(req)
 
-            if(messageError){
-                console.log(TAG_PRE_CONDITION_ERROR, messageError)
-                return new CreateUserUseCaseResponse(null, new PreconditionError(messageError))
+            if (validationError) {
+              console.log(TAG_PRE_CONDITION_ERROR, validationError.message)
+              const errorEntity = this.common.mapValidationErrorToEntity(validationError)
+              return new CreateUserUseCaseResponse(null, errorEntity)
             }
             
             const now = this.common.newDate()

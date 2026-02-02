@@ -14,7 +14,6 @@ class Cmd {
     const DATABASE_AUTH_REDIS_URI = ''
     const DATABASE_POSTGRESQL_MASTER_URI = ''
 
-
     if (!CMD) {
       console.log("var CMD not defined")
       return false
@@ -24,7 +23,6 @@ class Cmd {
       console.log('var CMD_VERSION not defined')
       return false
     }
-
 
     if (!DATABASE_AUTH_REDIS_URI) {
       console.log('var DATABASE_AUTH_REDIS_URI not defined')

@@ -27,10 +27,28 @@ class InternalServerError extends ErrorEntity {
   }
 }
 
+class ConflictError extends ErrorEntity {
+  static CONFLICT_ERROR = 3
+
+  constructor(message: string) {
+    super(ConflictError.CONFLICT_ERROR, message)
+  }
+}
+
+class UnauthorizedError extends ErrorEntity {
+  static UNAUTHORIZED_ERROR = 4
+
+  constructor(message: string) {
+    super(UnauthorizedError.UNAUTHORIZED_ERROR, message)
+  }
+}
+
 export { 
   ErrorEntity,
   PreconditionError,
   InternalServerError,
+  ConflictError,
+  UnauthorizedError,
   TAG_INTERNAL_SERVER_ERROR,
   TAG_PRE_CONDITION_ERROR
 }

@@ -1,5 +1,4 @@
 import { readdirSync, existsSync } from 'fs'
-import fs from 'fs'
 import path from 'path'
 
 function getObjectValues(obj: any) {
@@ -37,55 +36,8 @@ async function loadFilesOnDirectory(dir: string) {
   }
 }
 
-async function writeFileOnDirectory(response: any, directory: string): Promise<void> {
-  const writer = fs.createWriteStream(directory)
 
-  response.pipe(writer)
-
-  return new Promise((resolve, reject) => {
-    writer.on('finish', () => {
-      console.log("Arquivo salvo no diretório.")
-      resolve()
-    })
-
-    writer.on('error', () => {
-      reject(null)
-    })
-  })
-}
-
-function deleteFile(path: string): void {
-  try {
-    if (fs.existsSync(path)) {
-      fs.unlinkSync(path)
-      console.log("Arquivo removido da pasta public")
-    }
-  } catch (err) {
-    console.error("Erro ao tentar remover o arquivo:", err)
-  }
-}
-
-function deleteAllFiles(filePath: string): void {
-  try {
-    if (fs.existsSync(filePath)) {
-      const folderPath = path.dirname(filePath)
-      const files = fs.readdirSync(folderPath)
-
-      for (const file of files) {
-        const fullPath = path.join(folderPath, file)
-
-        fs.unlinkSync(fullPath)
-      }
-    }
-    console.log("Arquivos removidos da pasta public")
-  } catch (err) {
-    console.error("Erro ao tentar remover os arquivos:", err)
-  }
-}
 
 export {
-  loadFilesOnDirectory,
-  writeFileOnDirectory,
-  deleteFile,
-  deleteAllFiles
+  loadFilesOnDirectory
 }
