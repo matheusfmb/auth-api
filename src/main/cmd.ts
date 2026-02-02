@@ -44,8 +44,8 @@ class Cmd {
   }
 
   initDev(): void {
-    process.env['DATABASE_POSTGRESQL_MASTER_URI'] = ''
-    process.env["DATABASE_AUTH_REDIS_URI"] = ''
+    process.env['DATABASE_POSTGRESQL_MASTER_URI'] = 'postgresql://postgres:postgres@localhost:5432/api_dev'
+    process.env["DATABASE_AUTH_REDIS_URI"] = 'redis://localhost:6379'
 
     new CmdRest().server()
   }

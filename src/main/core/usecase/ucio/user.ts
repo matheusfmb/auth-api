@@ -12,11 +12,13 @@ class LoginUserUseCaseRequest {
 }
 
 class LoginUserUseCaseResponse {
-    public acessToken: string | null
+    public accessToken: string | null
+    public refreshToken: string | null
     public error: ErrorEntity | null
 
-    constructor(acessToken: string | null, error: ErrorEntity | null) {
-        this.acessToken = acessToken
+    constructor(accessToken: string | null, refreshToken: string | null, error: ErrorEntity | null) {
+        this.accessToken = accessToken
+        this.refreshToken = refreshToken
         this.error = error
     }
 }

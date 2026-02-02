@@ -1,7 +1,8 @@
 import { UserEntity } from "../../entities/user"
 
 interface LoginUserUseCaseRepositoryInterface {
-    login(email: string, password: string): Promise<UserEntity>
+    getUserByEmail(email: string): Promise<UserEntity | null>
+    saveRefreshTokenCache(token: string): Promise<void>
 }
 
 interface CreateUserUseCaseRepositoryInterface {

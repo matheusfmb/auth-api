@@ -5,7 +5,7 @@ interface LoginUserUseCaseValidateInterface {
 }
 
 interface CreateUserUseCaseValidateInterface {
-    createUser(req: CreateUserUseCaseRequest): string | null 
+    createUser(req: CreateUserUseCaseRequest): Promise<string | null> 
 }
 
 export {
