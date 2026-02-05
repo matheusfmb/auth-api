@@ -5,6 +5,7 @@ import logger from "morgan"
 import bodyParser from "body-parser"
 import { PORT } from "../config/config"
 import { Router } from "../router"
+import { swaggerSetup } from "../doc/swagger"
 
 class CmdRest {
   private app: express.Application
@@ -12,6 +13,7 @@ class CmdRest {
   constructor() {
     this.app = express()
     this.middleware()
+    swaggerSetup(this.app)
     this.router()
   }
 

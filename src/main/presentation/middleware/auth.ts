@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { NextFunction, Request, Response } from 'express'
 import { AuthMiddlewareUseCase } from '../../core/usecase/auth'
 import { AuthMiddlewareUseCaseRequest } from '../../core/usecase/ucio/auth'
 import { AuthMiddlewareUseCaseCommon } from '../../infra/provider/common/auth'
@@ -7,7 +7,7 @@ import { mapErrorToHttp } from '../http/http_mappers'
 import { AuthMiddlewareUseCaseValidate } from '../../infra/provider/validate/auth'
 
 class AuthMiddlewareController {
-  async authMiddleware(req: Request, res: Response, next: Function) {
+  async authMiddleware(req: Request, res: Response, next: NextFunction) {
     const { authorization } = req.headers
     const refreshToken = req.cookies?.refreshToken ?? ''
 
