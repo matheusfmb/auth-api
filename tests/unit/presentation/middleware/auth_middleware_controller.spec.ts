@@ -36,7 +36,8 @@ describe('AuthMiddlewareController', () => {
       cookie: jest.fn().mockReturnThis(),
       setHeader: jest.fn(),
       status: jest.fn().mockReturnThis(),
-      json: jest.fn().mockReturnThis()
+      json: jest.fn().mockReturnThis(),
+      locals: {}
     }
 
     next = jest.fn()

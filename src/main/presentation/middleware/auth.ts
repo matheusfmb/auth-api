@@ -27,6 +27,10 @@ class AuthMiddlewareController {
       return res.status(http.statusCode).json(http.body)
     }
 
+    if (ucRes.user) {
+      res.locals.user = ucRes.user
+    }
+
     if (ucRes.refreshToken) {
       res.cookie('refreshToken', ucRes.refreshToken, {
         httpOnly: true,
@@ -34,6 +38,7 @@ class AuthMiddlewareController {
         sameSite: 'strict',
         maxAge: 3 * 60 * 60 * 1000
       })
+      res.setHeader('x-token-rotated', 'true')
     }
 
     if (ucRes.accessToken) {

@@ -1,4 +1,4 @@
-import { ConflictError, ErrorEntity, InternalServerError, NotFoundError, PreconditionError, UnauthorizedError } from "../../core/entities/error"
+import { ConflictError, ErrorEntity, ForbiddenError, InternalServerError, NotFoundError, PreconditionError, UnauthorizedError } from "../../core/entities/error"
 import { HttpResponseFactory } from "./http_response"
 
 function mapErrorToHttp(error: ErrorEntity) {
@@ -10,6 +10,9 @@ function mapErrorToHttp(error: ErrorEntity) {
   }
   if (error instanceof UnauthorizedError) {
     return HttpResponseFactory.custom(401, { error: error.message })
+  }
+  if (error instanceof ForbiddenError) {
+    return HttpResponseFactory.custom(403, { error: error.message })
   }
   if (error instanceof NotFoundError) {
     return HttpResponseFactory.custom(404, { error: error.message })
