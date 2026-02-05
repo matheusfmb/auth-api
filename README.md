@@ -13,6 +13,7 @@ O projeto utiliza uma stack moderna e robusta para garantir escalabilidade e man
   - Relacional: [PostgreSQL](https://www.postgresql.org/)
   - Cache/Sessão: [Redis](https://redis.io/)
 - **Autenticação:** JWT (JSON Web Tokens)
+- **Documentação da API:** [Swagger/OpenAPI](https://swagger.io/)
 - **Containerização:** [Docker](https://www.docker.com/) & Docker Compose
 - **Testes:** [Jest](https://jestjs.io/)
 
@@ -53,6 +54,9 @@ O código foi organizado seguindo os princípios da Clean Architecture para desa
    ```
    A API estará rodando em `http://localhost:8100` (ou a porta definida no seu `.env`).
 
+6. **Acesse a documentação da API:**
+   A documentação interativa da API está disponível via Swagger UI em `http://localhost:8100/api-docs`. Lá você pode visualizar todas as rotas, testar endpoints e ver os schemas de dados.
+
 5. **Para buildar e rodar com Docker (Aplicação completa):**
    ```bash
    docker-compose up -d
@@ -70,7 +74,7 @@ npm run test:watch
 
 ## 🛠️ Rotas Principais
 
-A API expõe rotas para as seguintes funcionalidades:
+A API expõe rotas para as seguintes funcionalidades. Para detalhes completos sobre parâmetros, respostas e exemplos, consulte a documentação Swagger em `/api-docs`.
 
 - **Autenticação (`/auth`):**
   - `POST /login`: Autentica as credenciais do usuário e retorna um `accessToken` JWT e refreshToken nos cookies.
@@ -78,7 +82,10 @@ A API expõe rotas para as seguintes funcionalidades:
 - **Usuários (`/users`):**
   - `POST /create`: Rota pública para registro de novos usuários no sistema.
   - `GET /:userID`: Rota protegida que retorna os dados de um usuário específico.
-    - **Middleware de Autenticação:** Esta rota implementa o middleware que valida o token de acesso e, transparentemente, realiza o *refresh* do token caso necessário, garantindo segurança e fluidez na sessão.
+    - **Middlewares de Segurança:** Esta rota implementa múltiplos middlewares:
+      - **Autenticação:** Valida o token de acesso e realiza refresh automático se necessário.
+      - **Autorização por Papel:** Verifica se o usuário tem os papéis necessários.
+      - **Verificação de Propriedade:** Garante que o usuário só possa acessar seus próprios dados (ownership check).
 
 ## 🔍 Observabilidade e Segurança
 
@@ -87,7 +94,7 @@ A API expõe rotas para as seguintes funcionalidades:
 
 ## 🗓️ Para Implementar
 
-- **Observabilidade com OpenTelemetry:** Exportar métricas e traces (ex.: fluxo de `POST /auth/login` e `AuthMiddleware`) para facilitar troubleshooting e demonstrar rastreabilidade.
+- **Observabilidade com OpenTelemetry:** Exportar métricas e traces para facilitar troubleshooting e demonstrar rastreabilidade.
 - **Rate limiting:** Adicionar um rate limiter baseado em Redis/`express-rate-limit` para proteger endpoints sensíveis contra brute force e abuso.
 
 ## 📝 Autor
