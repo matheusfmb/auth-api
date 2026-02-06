@@ -1,22 +1,26 @@
 import { NextFunction, Request, Response } from 'express'
-import { ForbiddenError, UnauthorizedError } from '../../core/entities/error'
 import { mapErrorToHttp } from '../http/http_mappers'
+import { RoleMiddlewareUseCaseRequest } from '../../core/usecase/ucio/role'
+import { RoleMiddlewareUseCaseValidate } from '../../infra/provider/validate/role'
+import { RoleMiddlewareUseCase } from '../../core/usecase/role'
+import { RoleMiddlewareUseCaseCommon } from '../../infra/provider/common/role'
 
 class RoleMiddlewareController {
   requireRoles(roles: string[] = []) {
-    return (req: Request, res: Response, next: NextFunction) => {
+   return async (req: Request, res: Response, next: NextFunction) => {
       const user = res.locals.user
 
-      if (!user) {
-        const http = mapErrorToHttp(new UnauthorizedError('Unauthorized'))
+      const ucReq = new RoleMiddlewareUseCaseRequest(user, roles)
+      const common = new RoleMiddlewareUseCaseCommon()
+      const validate = new RoleMiddlewareUseCaseValidate()
+      const usecase = new RoleMiddlewareUseCase(common, validate)
+      
+      const ucRes = await usecase.roleMiddleware(ucReq)
+
+      if (ucRes.error) {
+        const http = mapErrorToHttp(ucRes.error)
         return res.status(http.statusCode).json(http.body)
       }
-
-      if (roles.length > 0 && !roles.includes(user.role)) {
-        const http = mapErrorToHttp(new ForbiddenError('Insufficient role'))
-        return res.status(http.statusCode).json(http.body)
-      }
-
       return next()
     }
   }

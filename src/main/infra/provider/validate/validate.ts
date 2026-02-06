@@ -5,6 +5,13 @@ function checkStringEmpty(value: string): boolean {
     return !value || value.trim() === ""
 }
 
+function checkListEmpty(list: any[]): ValidationError | null {
+  if (!list || !Array.isArray(list) || list.length === 0) {
+    return { type: ValidationErrorType.PRECONDITION, message: `List is required.` }
+  }
+  return null
+}
+
 function mapValidationErrorToEntity(validationError: ValidationError): ErrorEntity {
   if (validationError.type === ValidationErrorType.CONFLICT) {
     return new ConflictError(validationError.message)
@@ -15,7 +22,9 @@ function mapValidationErrorToEntity(validationError: ValidationError): ErrorEnti
   return new PreconditionError(validationError.message)
 }
 
+
 export {
-    checkStringEmpty,
-    mapValidationErrorToEntity
+  checkStringEmpty,
+  mapValidationErrorToEntity,
+  checkListEmpty
 }
