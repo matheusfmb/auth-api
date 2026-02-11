@@ -23,9 +23,13 @@ describe('AuthMiddlewareController', () => {
   let req: any
   let res: any
   let next: jest.Mock
+  let mockUseCase: any
 
   beforeEach(() => {
-    controller = new AuthMiddlewareController()
+    mockUseCase = {
+      authMiddleware: authMiddlewareExecuteMock
+    }
+    controller = new AuthMiddlewareController(mockUseCase)
 
     req = {
       headers: {},
