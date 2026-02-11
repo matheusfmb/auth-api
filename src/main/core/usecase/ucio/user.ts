@@ -65,11 +65,33 @@ class GetUserByIDUseCaseResponse {
     }   
 }
 
+class LogoutUserUseCaseRequest {
+    public userID: string
+    public accessToken: string
+
+    constructor(userID: string, accessToken: string) {
+        this.userID = userID
+        this.accessToken = accessToken
+    }
+}
+
+class LogoutUserUseCaseResponse {
+    public success: boolean
+    public error: ErrorEntity | null
+
+    constructor(success: boolean, error: ErrorEntity | null) {
+        this.success = success
+        this.error = error
+    }
+}
+
 export {
     LoginUserUseCaseRequest,
     LoginUserUseCaseResponse,
     CreateUserUseCaseRequest,
     CreateUserUseCaseResponse,
     GetUserByIDUseCaseRequest,
-    GetUserByIDUseCaseResponse
+    GetUserByIDUseCaseResponse,
+    LogoutUserUseCaseRequest,
+    LogoutUserUseCaseResponse
 }

@@ -1,9 +1,9 @@
 import { v4 } from "uuid"
 import bcrypt from "bcryptjs"
-import { CreateUserUseCaseCommonInterface, GetUserByIDUseCaseCommonInterface, LoginUserUseCaseCommonInterface } from "../../../core/usecase/common/user"
+import { CreateUserUseCaseCommonInterface, GetUserByIDUseCaseCommonInterface, LoginUserUseCaseCommonInterface, LogoutUserUseCaseCommonInterface } from "../../../core/usecase/common/user"
 import { newDate } from "../../internal/common/date"
 import { TokenPayloadEntity } from "../../../core/entities/token"
-import { encrypt } from "../../internal/jwt/jwt"
+import { decodeToken, encrypt } from "../../internal/jwt/jwt"
 import { ErrorEntity } from "../../../core/entities/error"
 import { ValidationError } from "../../../core/enums/error"
 import { mapValidationErrorToEntity } from "../validate/validate"
@@ -52,8 +52,18 @@ class GetUserByIDUseCaseCommon implements GetUserByIDUseCaseCommonInterface {
     }
 }
 
+class LogoutUserUseCaseCommon implements LogoutUserUseCaseCommonInterface {
+    decodeToken(token: string): TokenPayloadEntity | null {
+        return decodeToken(token)
+    }
+    mapValidationErrorToEntity(validationError: ValidationError): ErrorEntity {
+        return mapValidationErrorToEntity(validationError)
+    }
+}
+
 export {
     LoginUserUseCaseCommon,
     CreateUserUseCaseCommon,
-    GetUserByIDUseCaseCommon
+    GetUserByIDUseCaseCommon,
+    LogoutUserUseCaseCommon
 }

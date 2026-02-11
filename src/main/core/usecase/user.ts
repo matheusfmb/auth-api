@@ -1,11 +1,11 @@
-import { EXPIRE_IN_1H, EXPIRE_IN_3H } from "../constants/util"
-import { InternalServerError, NotFoundError, TAG_PRE_CONDITION_ERROR, UnauthorizedError } from "../entities/error"
+import { EXPIRE_IN_1H, EXPIRE_IN_24H } from "../constants/util"
+import { InternalServerError, NotFoundError, PreconditionError, TAG_PRE_CONDITION_ERROR, UnauthorizedError } from "../entities/error"
 import { TokenPayloadEntity } from "../entities/token"
 import { UserEntity } from "../entities/user"
-import { CreateUserUseCaseCommonInterface, GetUserByIDUseCaseCommonInterface, LoginUserUseCaseCommonInterface } from "./common/user"
-import { CreateUserUseCaseRepositoryInterface, GetUserByIDUseCaseRepositoryInterface, LoginUserUseCaseRepositoryInterface } from "./repository/user"
-import { CreateUserUseCaseRequest, CreateUserUseCaseResponse, GetUserByIDUseCaseRequest, GetUserByIDUseCaseResponse, LoginUserUseCaseRequest, LoginUserUseCaseResponse } from "./ucio/user"
-import { CreateUserUseCaseValidateInterface, GetUserByIDUseCaseValidateInterface, LoginUserUseCaseValidateInterface } from "./validate/user"
+import { CreateUserUseCaseCommonInterface, GetUserByIDUseCaseCommonInterface, LoginUserUseCaseCommonInterface, LogoutUserUseCaseCommonInterface } from "./common/user"
+import { CreateUserUseCaseRepositoryInterface, GetUserByIDUseCaseRepositoryInterface, LoginUserUseCaseRepositoryInterface, LogoutUserUseCaseRepositoryInterface } from "./repository/user"
+import { CreateUserUseCaseRequest, CreateUserUseCaseResponse, GetUserByIDUseCaseRequest, GetUserByIDUseCaseResponse, LoginUserUseCaseRequest, LoginUserUseCaseResponse, LogoutUserUseCaseRequest, LogoutUserUseCaseResponse } from "./ucio/user"
+import { CreateUserUseCaseValidateInterface, GetUserByIDUseCaseValidateInterface, LoginUserUseCaseValidateInterface, LogoutUserUseCaseValidateInterface } from "./validate/user"
 
 class LoginUserUseCase {
   constructor(
@@ -42,9 +42,9 @@ class LoginUserUseCase {
       const tokenPayload = new TokenPayloadEntity(user.ID, user.role, expireAt.getTime(), now.getTime())
 
       const accessToken = this.common.generateToken(tokenPayload, EXPIRE_IN_1H)
-      const refreshToken = this.common.generateToken(tokenPayload, EXPIRE_IN_3H)
+      const refreshToken = this.common.generateToken(tokenPayload, EXPIRE_IN_24H)
 
-      await this.repository.saveRefreshTokenCache(refreshToken)
+      await this.repository.saveRefreshTokenCache(refreshToken, user.ID, 1)
 
       return new LoginUserUseCaseResponse(accessToken, refreshToken, null)
 
@@ -125,8 +125,38 @@ class GetUserByIDUseCase {
   }
 }
 
+class LogoutUserUseCase {
+  constructor(
+    public common: LogoutUserUseCaseCommonInterface,
+    public repository: LogoutUserUseCaseRepositoryInterface,
+    public validate: LogoutUserUseCaseValidateInterface
+  ) {}
+
+  async logout(req: LogoutUserUseCaseRequest): Promise<LogoutUserUseCaseResponse> {
+    try {
+      const validationError = this.validate.logout(req)
+
+      if (validationError) {
+        const errorEntity = this.common.mapValidationErrorToEntity(validationError)
+        return new LogoutUserUseCaseResponse(false, errorEntity)
+      }
+
+      const tokenPayload = this.common.decodeToken(req.accessToken)
+      if(tokenPayload?.jti) {
+        await this.repository.addTokenToBlacklist(tokenPayload?.jti)
+        return new LogoutUserUseCaseResponse(true, null)
+      } else {
+        return new LogoutUserUseCaseResponse(false, new PreconditionError("JWT ID not found in token"))
+      }
+    } catch (error: any) {
+      return new LogoutUserUseCaseResponse(false, new InternalServerError(error.message))
+    }
+  }
+}
+
 export {
     LoginUserUseCase,
     CreateUserUseCase,
-    GetUserByIDUseCase
+    GetUserByIDUseCase,
+    LogoutUserUseCase
 }

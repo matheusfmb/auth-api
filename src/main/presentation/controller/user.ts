@@ -1,9 +1,9 @@
-import { CreateUserUseCaseRequest, CreateUserUseCaseResponse, GetUserByIDUseCaseRequest, LoginUserUseCaseRequest } from "../../core/usecase/ucio/user"
-import { CreateUserUseCaseValidate, GetUserByIDUseCaseValidate, LoginUserUseCaseValidate } from "../../infra/provider/validate/user"
-import { CreateUserUseCaseCommon, GetUserByIDUseCaseCommon, LoginUserUseCaseCommon } from "../../infra/provider/common/user"
+import { CreateUserUseCaseRequest, CreateUserUseCaseResponse, GetUserByIDUseCaseRequest, LoginUserUseCaseRequest, LogoutUserUseCaseRequest } from "../../core/usecase/ucio/user"
+import { CreateUserUseCaseValidate, GetUserByIDUseCaseValidate, LoginUserUseCaseValidate, LogoutUserUseCaseValidate } from "../../infra/provider/validate/user"
+import { CreateUserUseCaseCommon, GetUserByIDUseCaseCommon, LoginUserUseCaseCommon, LogoutUserUseCaseCommon } from "../../infra/provider/common/user"
 import { Request, Response } from 'express'
-import { CreateUserUseCaseRepository, GetUserByIDUseCaseRepository, LoginUserUseCaseRepository } from "../../infra/provider/repository/user"
-import { CreateUserUseCase, GetUserByIDUseCase, LoginUserUseCase } from "../../core/usecase/user"
+import { CreateUserUseCaseRepository, GetUserByIDUseCaseRepository, LoginUserUseCaseRepository, LogoutUserUseCaseRepository } from "../../infra/provider/repository/user"
+import { CreateUserUseCase, GetUserByIDUseCase, LoginUserUseCase, LogoutUserUseCase } from "../../core/usecase/user"
 import { mapErrorToHttp } from "../http/http_mappers"
 import { HttpResponseFactory } from "../http/http_response"
 
@@ -81,8 +81,41 @@ class GetUserByIDController {
     }
 }
 
+class LogoutController {
+    async logout(req: Request, res: Response) {
+        const authHeader = req.headers.authorization ?? ''
+        const accessToken = authHeader.replace('Bearer ', '')
+        const user = res.locals.user
+        const userID = user?.ID ?? ''
+
+        const ucReq = new LogoutUserUseCaseRequest(userID, accessToken)
+        const common = new LogoutUserUseCaseCommon()
+        const validate = new LogoutUserUseCaseValidate()
+        const repository = new LogoutUserUseCaseRepository()
+
+        const usecase = new LogoutUserUseCase(common, repository, validate)
+
+        const ucRes = await usecase.logout(ucReq)
+
+        if (ucRes.error) {
+            const http = mapErrorToHttp(ucRes.error)
+            return res.status(http.statusCode).json(http.body)
+        }
+
+        res.clearCookie('refreshToken', {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'strict'
+        })
+
+        const http = HttpResponseFactory.ok({ message: 'Logged out successfully' })
+        return res.status(http.statusCode).json(http.body)
+    }
+}
+
 export {
     LoginController,
     CreateUserController,
-    GetUserByIDController
+    GetUserByIDController,
+    LogoutController
 }

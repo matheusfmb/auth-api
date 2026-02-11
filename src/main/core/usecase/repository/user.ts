@@ -2,7 +2,7 @@ import { UserEntity } from "../../entities/user"
 
 interface LoginUserUseCaseRepositoryInterface {
     getUserByEmail(email: string): Promise<UserEntity | null>
-    saveRefreshTokenCache(token: string): Promise<void>
+    saveRefreshTokenCache(token: string, userID: string, version: number): Promise<void>
 }
 
 interface CreateUserUseCaseRepositoryInterface {
@@ -13,8 +13,13 @@ interface GetUserByIDUseCaseRepositoryInterface {
     getUserByID(userID: string): Promise<UserEntity | null>
 }
 
+interface LogoutUserUseCaseRepositoryInterface {
+    addTokenToBlacklist(jti: string): Promise<void>
+}
+
 export {
     LoginUserUseCaseRepositoryInterface,
     CreateUserUseCaseRepositoryInterface,
-    GetUserByIDUseCaseRepositoryInterface
+    GetUserByIDUseCaseRepositoryInterface,
+    LogoutUserUseCaseRepositoryInterface
 }

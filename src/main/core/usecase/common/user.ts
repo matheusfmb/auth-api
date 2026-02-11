@@ -22,8 +22,14 @@ interface GetUserByIDUseCaseCommonInterface {
     mapValidationErrorToEntity(validationError: ValidationError): ErrorEntity
 }
 
+interface LogoutUserUseCaseCommonInterface {
+    mapValidationErrorToEntity(validationError: ValidationError): ErrorEntity
+    decodeToken(token: string): TokenPayloadEntity | null
+}
+
 export {
     LoginUserUseCaseCommonInterface,
     CreateUserUseCaseCommonInterface,
-    GetUserByIDUseCaseCommonInterface
+    GetUserByIDUseCaseCommonInterface,
+    LogoutUserUseCaseCommonInterface
 }

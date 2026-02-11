@@ -1,5 +1,6 @@
 import { Router } from "express"
-import { LoginController } from "../controller/user"
+import { LoginController, LogoutController } from "../controller/user"
+import { AuthMiddlewareController } from "../middleware/auth"
 
 class AuthRouter {
   private router: Router
@@ -8,6 +9,7 @@ class AuthRouter {
     this.router = Router()
 
     this.router.post('/auth/login', new LoginController().login)
+    this.router.post('/auth/logout', new AuthMiddlewareController().authMiddleware, new LogoutController().logout)
   }
 
   public getRouter(): Router {
