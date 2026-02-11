@@ -1,15 +1,19 @@
 import { Router } from "express"
-import { LoginController, LogoutController } from "../controller/user"
-import { AuthMiddlewareController } from "../middleware/auth"
+import { AuthRouterServices } from "./config/authRouterConfig"
 
 class AuthRouter {
   private router: Router
 
-  constructor() {
+  constructor(services: AuthRouterServices) {
     this.router = Router()
+    const { loginController, logoutController, authMiddleware } = services
 
-    this.router.post('/auth/login', new LoginController().login)
-    this.router.post('/auth/logout', new AuthMiddlewareController().authMiddleware, new LogoutController().logout)
+    this.router.post('/auth/login', (req, res) => loginController.login(req, res))
+    this.router.post(
+      '/auth/logout',
+      (req, res, next) => authMiddleware.authMiddleware(req, res, next),
+      (req, res) => logoutController.logout(req, res)
+    )
   }
 
   public getRouter(): Router {

@@ -3,13 +3,15 @@ import { CorsRouter } from './cors'
 import { UserRouter } from './user'
 import { AuthRouter } from './auth'
 import { limiter } from '../middleware/rateLimiter'
+import { getAuthRouterServices } from './config/authRouterConfig'
+import { getUserRouterServices } from './config/userRouterConfig'
 
 class Router {
 	constructor(app: express.Router) {
 		app.use(limiter)
 		app.use(new CorsRouter().getRouter())
-		app.use(new UserRouter().getRouter())
-		app.use(new AuthRouter().getRouter())
+		app.use(new UserRouter(getUserRouterServices()).getRouter())
+		app.use(new AuthRouter(getAuthRouterServices()).getRouter())
 	}
 }
 

@@ -1,17 +1,19 @@
 import { Router } from "express"
-import { CreateUserController, GetUserByIDController } from "../controller/user"
-import { AuthMiddlewareController } from "../middleware/auth"
-import { RoleMiddlewareController } from "../middleware/role"
-import { OwnershipMiddlewareController } from "../middleware/ownership"
 import { ALL_ROLES_AUTORIZED } from "../../core/constants/util"
+import { UserRouterServices } from "./config/userRouterConfig"
 
 class UserRouter {
   private router: Router
 
-  constructor() {
+  constructor(services: UserRouterServices) {
     this.router = Router()
-    this.router.post('/users/create', new CreateUserController().createUser)
-    this.router.get('/users/:userID', new AuthMiddlewareController().authMiddleware, new RoleMiddlewareController().requireRoles(ALL_ROLES_AUTORIZED), new OwnershipMiddlewareController().ownershipMiddleware('userID'), new GetUserByIDController().getUserByID)
+
+
+    this.router.post('/users/create', (req, res) => services.createUserController.createUser(req, res))
+    this.router.get('/users/:userID', (req, res, next) => services.authMiddleware.authMiddleware(req, res, next), (req, res, next) => services.roleMiddleware.requireRoles(ALL_ROLES_AUTORIZED)(req, res, next), 
+      (req, res, next) => services.ownershipMiddleware.ownershipMiddleware('userID')(req, res, next),
+      (req, res) => services.getUserByIDController.getUserByID(req, res)
+    )
   }
 
   public getRouter(): Router {
