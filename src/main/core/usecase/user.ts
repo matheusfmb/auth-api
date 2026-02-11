@@ -38,8 +38,9 @@ class LoginUserUseCase {
       const now = this.common.newDate()
       const expireAt = this.common.newDate()
       expireAt.setHours(expireAt.getHours() + 1)
-
-      const tokenPayload = new TokenPayloadEntity(user.ID, user.role, expireAt.getTime(), now.getTime())
+      
+      const sharedJti = this.common.generateUUID()
+      const tokenPayload = new TokenPayloadEntity(user.ID, user.role, expireAt.getTime(), now.getTime(), sharedJti, 1)
 
       const accessToken = this.common.generateToken(tokenPayload, EXPIRE_IN_1H)
       const refreshToken = this.common.generateToken(tokenPayload, EXPIRE_IN_24H)
@@ -141,13 +142,23 @@ class LogoutUserUseCase {
         return new LogoutUserUseCaseResponse(false, errorEntity)
       }
 
-      const tokenPayload = this.common.decodeToken(req.accessToken)
-      if(tokenPayload?.jti) {
-        await this.repository.addTokenToBlacklist(tokenPayload?.jti)
-        return new LogoutUserUseCaseResponse(true, null)
-      } else {
-        return new LogoutUserUseCaseResponse(false, new PreconditionError("JWT ID not found in token"))
+      const accessPayload = this.common.decodeToken(req.accessToken)
+      if(!accessPayload?.jti) {
+        return new LogoutUserUseCaseResponse(false, new PreconditionError("JWT ID not found in access token"))
       }
+
+      await this.repository.addTokenToBlacklist(accessPayload.jti)
+
+      if (req.refreshToken) {
+        const refreshPayload = this.common.decodeToken(req.refreshToken)
+        if (refreshPayload?.jti) {
+          await this.repository.addTokenToBlacklist(refreshPayload.jti)
+        }
+      }
+
+      await this.repository.deleteRefreshToken(req.userID)
+
+      return new LogoutUserUseCaseResponse(true, null)
     } catch (error: any) {
       return new LogoutUserUseCaseResponse(false, new InternalServerError(error.message))
     }

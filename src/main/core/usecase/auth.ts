@@ -80,10 +80,10 @@ class AuthMiddlewareUseCase {
             const expireAt = this.common.newDate()
             expireAt.setHours(expireAt.getHours() + 1)
 
-            const tokenPayload = new TokenPayloadEntity(user.ID, user.role, expireAt.getTime(), now.getTime())
-            const newAccessToken = this.common.generateToken(tokenPayload, EXPIRE_IN_1H)
-            
             const newVersion = (tokenVersion || 1) + 1
+            const sharedJti = this.common.generateUUID()
+            const tokenPayload = new TokenPayloadEntity(user.ID, user.role, expireAt.getTime(), now.getTime(), sharedJti, newVersion)
+            const newAccessToken = this.common.generateToken(tokenPayload, EXPIRE_IN_1H)
             const newRefreshToken = this.common.generateToken(tokenPayload, EXPIRE_IN_24H)
             
             await this.repository.saveRefreshToken(newRefreshToken, user.ID, newVersion)

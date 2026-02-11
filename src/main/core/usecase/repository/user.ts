@@ -15,6 +15,7 @@ interface GetUserByIDUseCaseRepositoryInterface {
 
 interface LogoutUserUseCaseRepositoryInterface {
     addTokenToBlacklist(jti: string): Promise<void>
+    deleteRefreshToken(userID: string): Promise<void>
 }
 
 export {

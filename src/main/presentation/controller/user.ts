@@ -85,10 +85,11 @@ class LogoutController {
     async logout(req: Request, res: Response) {
         const authHeader = req.headers.authorization ?? ''
         const accessToken = authHeader.replace('Bearer ', '')
+        const refreshToken = req.cookies?.refreshToken ?? ''
         const user = res.locals.user
         const userID = user?.ID ?? ''
 
-        const ucReq = new LogoutUserUseCaseRequest(userID, accessToken)
+        const ucReq = new LogoutUserUseCaseRequest(userID, accessToken, refreshToken)
         const common = new LogoutUserUseCaseCommon()
         const validate = new LogoutUserUseCaseValidate()
         const repository = new LogoutUserUseCaseRepository()

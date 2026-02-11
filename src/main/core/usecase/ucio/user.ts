@@ -68,10 +68,12 @@ class GetUserByIDUseCaseResponse {
 class LogoutUserUseCaseRequest {
     public userID: string
     public accessToken: string
+    public refreshToken: string
 
-    constructor(userID: string, accessToken: string) {
+    constructor(userID: string, accessToken: string, refreshToken: string = '') {
         this.userID = userID
         this.accessToken = accessToken
+        this.refreshToken = refreshToken
     }
 }
 
