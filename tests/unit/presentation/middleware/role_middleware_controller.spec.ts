@@ -25,25 +25,25 @@ describe('RoleMiddlewareController', () => {
     mapErrorToHttp.mockReset()
   })
 
-  it('passes if user has required role', () => {
+  it('passes if user has required role', async () => {
     res.locals.user = { role: 'admin' }
     const handler = controller.requireRoles(['admin'])
-    handler(req, res, next)
+    await handler(req, res, next)
     expect(next).toHaveBeenCalled()
   })
 
-  it('blocks if user lacks role', () => {
+  it('blocks if user lacks role', async () => {
     res.locals.user = { role: 'user' }
     mapErrorToHttp.mockReturnValue({ statusCode: 403, body: { error: 'Forbidden' } })
     const handler = controller.requireRoles(['admin'])
-    handler(req, res, next)
+    await handler(req, res, next)
     expect(mapErrorToHttp).toHaveBeenCalledWith(new ForbiddenError('Insufficient role'))
   })
 
-  it('blocks if no user', () => {
+  it('blocks if no user', async () => {
     mapErrorToHttp.mockReturnValue({ statusCode: 401, body: { error: 'Unauthorized' } })
     const handler = controller.requireRoles(['admin'])
-    handler(req, res, next)
+    await handler(req, res, next)
     expect(mapErrorToHttp).toHaveBeenCalledWith(new UnauthorizedError('Unauthorized'))
   })
 })

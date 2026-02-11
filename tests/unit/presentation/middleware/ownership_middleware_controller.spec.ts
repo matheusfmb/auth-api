@@ -25,35 +25,35 @@ describe('OwnershipMiddlewareController', () => {
     mapErrorToHttp.mockReset()
   })
 
-  it('passes if user is owner', () => {
+  it('passes if user is owner', async () => {
     res.locals.user = { ID: '123', role: 'user' }
     req.params.userID = '123'
     const handler = controller.ownershipMiddleware('userID')
-    handler(req, res, next)
+    await handler(req, res, next)
     expect(next).toHaveBeenCalled()
   })
 
-  it('passes if user is admin', () => {
+  it('passes if user is admin', async () => {
     res.locals.user = { ID: '456', role: 'admin' }
     req.params.userID = '123'
     const handler = controller.ownershipMiddleware('userID')
-    handler(req, res, next)
+    await handler(req, res, next)
     expect(next).toHaveBeenCalled()
   })
 
-  it('blocks if not owner and not admin', () => {
+  it('blocks if not owner and not admin', async () => {
     res.locals.user = { ID: '456', role: 'user' }
     req.params.userID = '123'
     mapErrorToHttp.mockReturnValue({ statusCode: 403, body: { error: 'Forbidden' } })
     const handler = controller.ownershipMiddleware('userID')
-    handler(req, res, next)
+    await handler(req, res, next)
     expect(mapErrorToHttp).toHaveBeenCalledWith(new ForbiddenError('Forbidden resource'))
   })
 
-  it('blocks if no user', () => {
+  it('blocks if no user', async () => {
     mapErrorToHttp.mockReturnValue({ statusCode: 401, body: { error: 'Unauthorized' } })
     const handler = controller.ownershipMiddleware('userID')
-    handler(req, res, next)
+    await handler(req, res, next)
     expect(mapErrorToHttp).toHaveBeenCalledWith(new UnauthorizedError('Unauthorized'))
   })
 })

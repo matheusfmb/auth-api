@@ -1,4 +1,4 @@
-import { InternalServerError, UnauthorizedError } from "../entities/error"
+import { InternalServerError, UnauthorizedError, ForbiddenError } from "../entities/error"
 import { OwnershipMiddlwareUseCaseRequest, OwnerShipMiddlwareUseCaseResponse } from "./ucio/ownership"
 
 class OwnerShipMiddlwareUseCase {
@@ -9,7 +9,7 @@ class OwnerShipMiddlwareUseCase {
             }
             const ownerID = req.paramKey
             if (ownerID && req.user.role !== 'admin' && req.user.ID !== ownerID) {
-                return new OwnerShipMiddlwareUseCaseResponse(new UnauthorizedError('Forbidden resource'))
+                return new OwnerShipMiddlwareUseCaseResponse(new ForbiddenError('Forbidden resource'))
             }
             return new OwnerShipMiddlwareUseCaseResponse(null)
         } catch (error: any){

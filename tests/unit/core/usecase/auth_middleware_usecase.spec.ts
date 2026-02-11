@@ -20,6 +20,8 @@ const createRepositoryMock = (): jest.Mocked<AuthMiddlewareUseCaseRepositoryInte
   getRefreshToken: jest.fn(),
   saveRefreshToken: jest.fn(),
   deleteRefreshToken: jest.fn(),
+  isTokenBlacklisted: jest.fn(),
+  addTokenToBlacklist: jest.fn(),
   getUserByID: jest.fn()
 })
 
@@ -44,6 +46,8 @@ const createPayload = (overrides?: Partial<TokenPayloadEntity>): TokenPayloadEnt
   role: 'admin',
   expireAt: Date.now() + 3600,
   createdAt: Date.now(),
+  jti: 'token-jti-123',
+  version: 1,
   ...overrides
 })
 
@@ -59,6 +63,7 @@ describe('AuthMiddlewareUseCase', () => {
 
     validate.authMiddleware.mockReturnValue(null)
     common.decodeToken.mockReturnValue(payload)
+    repository.isTokenBlacklisted.mockResolvedValue(false)
     repository.getUserByID.mockResolvedValue(user)
 
     const response = await usecase.authMiddleware(new AuthMiddlewareUseCaseRequest('access-token', 'refresh-token'))
@@ -67,6 +72,7 @@ describe('AuthMiddlewareUseCase', () => {
     expect(response.user).toEqual(user)
     expect(response.accessToken).toBeNull()
     expect(response.refreshToken).toBeNull()
+    expect(repository.isTokenBlacklisted).toHaveBeenCalledWith(payload.jti)
     expect(repository.getRefreshToken).not.toHaveBeenCalled()
   })
 
@@ -77,18 +83,21 @@ describe('AuthMiddlewareUseCase', () => {
     const usecase = new AuthMiddlewareUseCase(common, validate, repository)
 
     const user = createUser()
-    const refreshPayload = createPayload({ expireAt: Date.now() + 7200 })
+    const refreshPayload = createPayload({ expireAt: Date.now() + 7200, version: 1 })
+    const userID = '25f95982-ef1f-49a6-a89e-b9b198729cd2'
 
     validate.authMiddleware.mockReturnValue(null)
     common.decodeToken
       .mockReturnValueOnce(null)
       .mockReturnValueOnce(refreshPayload)
 
-    repository.getRefreshToken.mockResolvedValue('refresh-token')
+    repository.isTokenBlacklisted
+      .mockResolvedValueOnce(false)
+    repository.getRefreshToken.mockResolvedValue({ token: 'old-refresh-token', version: 1 })
     repository.getUserByID.mockResolvedValue(user)
 
     const now = new Date('2024-01-01T00:00:00Z')
-    const expireAt = new Date('2024-01-01T00:00:00Z')
+    const expireAt = new Date('2024-01-01T01:00:00Z')
 
     common.newDate
       .mockReturnValueOnce(now)
@@ -100,8 +109,8 @@ describe('AuthMiddlewareUseCase', () => {
 
     const response = await usecase.authMiddleware(new AuthMiddlewareUseCaseRequest('expired-access', 'old-refresh'))
 
-    expect(repository.deleteRefreshToken).toHaveBeenCalledWith('old-refresh')
-    expect(repository.saveRefreshToken).toHaveBeenCalledWith('new-refresh-token')
+    expect(repository.getRefreshToken).toHaveBeenCalledWith(userID)
+    expect(repository.saveRefreshToken).toHaveBeenCalledWith('new-refresh-token', userID, 2)
 
     expect(response.user).toEqual(user)
     expect(response.accessToken).toBe('new-access-token')
@@ -145,5 +154,124 @@ describe('AuthMiddlewareUseCase', () => {
     expect(response.error).toBe(mappedError)
     expect(response.user).toBeNull()
     expect(repository.getUserByID).not.toHaveBeenCalled()
+  })
+
+  it('returns unauthorized when access token JTI is blacklisted', async () => {
+    const common = createCommonMock()
+    const repository = createRepositoryMock()
+    const validate = createValidateMock()
+    const usecase = new AuthMiddlewareUseCase(common, validate, repository)
+
+    const payload = createPayload()
+
+    validate.authMiddleware.mockReturnValue(null)
+    common.decodeToken.mockReturnValue(payload)
+    repository.isTokenBlacklisted.mockResolvedValue(true)
+
+    const response = await usecase.authMiddleware(new AuthMiddlewareUseCaseRequest('revoked-token', 'refresh-token'))
+
+    expect(response.error).toBeInstanceOf(UnauthorizedError)
+    expect(response.error?.message).toBe('Token has been revoked')
+    expect(response.user).toBeNull()
+    expect(repository.isTokenBlacklisted).toHaveBeenCalledWith(payload.jti)
+    expect(repository.getUserByID).not.toHaveBeenCalled()
+  })
+
+  it('returns unauthorized when refresh token JTI is blacklisted', async () => {
+    const common = createCommonMock()
+    const repository = createRepositoryMock()
+    const validate = createValidateMock()
+    const usecase = new AuthMiddlewareUseCase(common, validate, repository)
+
+    const refreshPayload = createPayload()
+    const userID = '25f95982-ef1f-49a6-a89e-b9b198729cd2'
+
+    validate.authMiddleware.mockReturnValue(null)
+    common.decodeToken
+      .mockReturnValueOnce(null)
+      .mockReturnValueOnce(refreshPayload)
+
+    repository.isTokenBlacklisted.mockResolvedValueOnce(true)
+
+    const response = await usecase.authMiddleware(new AuthMiddlewareUseCaseRequest('invalid-access', 'revoked-refresh'))
+
+    expect(response.error).toBeInstanceOf(UnauthorizedError)
+    expect(response.error?.message).toBe('Refresh token has been revoked')
+    expect(response.user).toBeNull()
+    expect(repository.deleteRefreshToken).toHaveBeenCalledWith(userID)
+  })
+
+  it('detects suspicious activity when refresh token version mismatches', async () => {
+    const common = createCommonMock()
+    const repository = createRepositoryMock()
+    const validate = createValidateMock()
+    const usecase = new AuthMiddlewareUseCase(common, validate, repository)
+
+    const userID = '25f95982-ef1f-49a6-a89e-b9b198729cd2'
+    const refreshPayload = createPayload({ version: 1 })
+
+    validate.authMiddleware.mockReturnValue(null)
+    common.decodeToken
+      .mockReturnValueOnce(null)
+      .mockReturnValueOnce(refreshPayload)
+
+    repository.isTokenBlacklisted.mockResolvedValueOnce(false)
+    repository.getRefreshToken.mockResolvedValue({ token: 'stored-token', version: 3 })
+
+    const response = await usecase.authMiddleware(new AuthMiddlewareUseCaseRequest('invalid-access', 'old-refresh'))
+
+    expect(response.error).toBeInstanceOf(UnauthorizedError)
+    expect(response.error?.message).toBe('Suspicious activity detected. Please login again')
+    expect(response.user).toBeNull()
+    expect(repository.deleteRefreshToken).toHaveBeenCalledWith(userID)
+  })
+
+  it('returns unauthorized when refresh token is invalid in storage', async () => {
+    const common = createCommonMock()
+    const repository = createRepositoryMock()
+    const validate = createValidateMock()
+    const usecase = new AuthMiddlewareUseCase(common, validate, repository)
+
+    const refreshPayload = createPayload()
+
+    validate.authMiddleware.mockReturnValue(null)
+    common.decodeToken
+      .mockReturnValueOnce(null)
+      .mockReturnValueOnce(refreshPayload)
+
+    repository.isTokenBlacklisted.mockResolvedValueOnce(false)
+    repository.getRefreshToken.mockResolvedValue(null)
+
+    const response = await usecase.authMiddleware(new AuthMiddlewareUseCaseRequest('invalid-access', 'unknown-refresh'))
+
+    expect(response.error).toBeInstanceOf(UnauthorizedError)
+    expect(response.error?.message).toBe('Refresh token is invalid')
+    expect(response.user).toBeNull()
+  })
+
+  it('returns unauthorized when user not found during token refresh', async () => {
+    const common = createCommonMock()
+    const repository = createRepositoryMock()
+    const validate = createValidateMock()
+    const usecase = new AuthMiddlewareUseCase(common, validate, repository)
+
+    const userID = '25f95982-ef1f-49a6-a89e-b9b198729cd2'
+    const refreshPayload = createPayload({ version: 1 })
+
+    validate.authMiddleware.mockReturnValue(null)
+    common.decodeToken
+      .mockReturnValueOnce(null)
+      .mockReturnValueOnce(refreshPayload)
+
+    repository.isTokenBlacklisted.mockResolvedValueOnce(false)
+    repository.getRefreshToken.mockResolvedValue({ token: 'stored-token', version: 1 })
+    repository.getUserByID.mockResolvedValue(null)
+
+    const response = await usecase.authMiddleware(new AuthMiddlewareUseCaseRequest('invalid-access', 'old-refresh'))
+
+    expect(response.error).toBeInstanceOf(UnauthorizedError)
+    expect(response.error?.message).toBe('User not found')
+    expect(response.user).toBeNull()
+    expect(repository.deleteRefreshToken).toHaveBeenCalledWith(userID)
   })
 })
