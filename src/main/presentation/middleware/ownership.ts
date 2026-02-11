@@ -4,14 +4,15 @@ import { OwnershipMiddlwareUseCaseRequest } from '../../core/usecase/ucio/owners
 import { OwnerShipMiddlwareUseCase } from '../../core/usecase/ownership'
 
 class OwnershipMiddlewareController {
-   ownershipMiddleware(paramKey: string = 'userID') {
+  constructor(private usecase: OwnerShipMiddlwareUseCase) {}
+
+  ownershipMiddleware(paramKey: string = 'userID') {
     return async (req: Request, res: Response, next: NextFunction) => {
       const user = res.locals.user
-       const ownerID = req.params?.[paramKey]
+      const ownerID = req.params?.[paramKey]
 
       const ucReq = new OwnershipMiddlwareUseCaseRequest(user, ownerID)
-      const usecase = new OwnerShipMiddlwareUseCase()
-      const ucRes = await usecase.ownershipMiddleware(ucReq)
+      const ucRes = await this.usecase.ownershipMiddleware(ucReq)
 
       if (ucRes.error) {
         const http = mapErrorToHttp(ucRes.error)
