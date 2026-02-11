@@ -1,4 +1,5 @@
 import { CmdRest } from "./presentation/cmd/cmd"
+import { setupDIContainer, DIContainer } from "./infra/container"
 
 class Cmd {
   private CMD_REST = 'rest'
@@ -44,12 +45,17 @@ class Cmd {
   initDev(): void {
     process.env['DATABASE_POSTGRESQL_MASTER_URI'] = 'postgresql://postgres:postgres@localhost:5432/api_dev'
     process.env["DATABASE_AUTH_REDIS_URI"] = 'redis://localhost:6379'
+    setupDIContainer()
+    DIContainer.debug()
 
     new CmdRest().server()
   }
 
   async init(): Promise<void> {
     if (await this.checkEnvVar()) {
+      setupDIContainer()
+      DIContainer.debug()
+
       const CMD = process.env.CMD
 
       if (CMD === this.CMD_REST) {

@@ -1,24 +1,17 @@
-import { CreateUserUseCaseRequest, CreateUserUseCaseResponse, GetUserByIDUseCaseRequest, LoginUserUseCaseRequest, LogoutUserUseCaseRequest } from "../../core/usecase/ucio/user"
-import { CreateUserUseCaseValidate, GetUserByIDUseCaseValidate, LoginUserUseCaseValidate, LogoutUserUseCaseValidate } from "../../infra/provider/validate/user"
-import { CreateUserUseCaseCommon, GetUserByIDUseCaseCommon, LoginUserUseCaseCommon, LogoutUserUseCaseCommon } from "../../infra/provider/common/user"
+import { CreateUserUseCaseRequest, GetUserByIDUseCaseRequest, LoginUserUseCaseRequest, LogoutUserUseCaseRequest } from "../../core/usecase/ucio/user"
 import { Request, Response } from 'express'
-import { CreateUserUseCaseRepository, GetUserByIDUseCaseRepository, LoginUserUseCaseRepository, LogoutUserUseCaseRepository } from "../../infra/provider/repository/user"
 import { CreateUserUseCase, GetUserByIDUseCase, LoginUserUseCase, LogoutUserUseCase } from "../../core/usecase/user"
 import { mapErrorToHttp } from "../http/http_mappers"
 import { HttpResponseFactory } from "../http/http_response"
 
 class LoginController {
+    constructor(private usecase: LoginUserUseCase) {}
+
     async login(req: Request, res: Response) {
         const { email, password } = req.body
-
         const ucReq = new LoginUserUseCaseRequest(email, password)
-        const common = new LoginUserUseCaseCommon()
-        const validate = new LoginUserUseCaseValidate()
-        const repository = new LoginUserUseCaseRepository()
 
-        const usecase = new LoginUserUseCase(common, repository, validate)
-
-        const ucRes = await usecase.login(ucReq)
+        const ucRes = await this.usecase.login(ucReq)
 
         if (ucRes.error) {
             const http = mapErrorToHttp(ucRes.error)
@@ -39,17 +32,14 @@ class LoginController {
 }
 
 class CreateUserController {
+    constructor(private usecase: CreateUserUseCase) {}
+
     async createUser(req: Request, res: Response) {
         const { name, email, password, role } = req.body
 
         const ucReq = new CreateUserUseCaseRequest(name, email, password, role)
-        const common = new CreateUserUseCaseCommon()
-        const validate = new CreateUserUseCaseValidate()
-        const repository = new CreateUserUseCaseRepository()
 
-        const usecase = new CreateUserUseCase(common, repository, validate)
-
-        const ucRes = await usecase.createUser(ucReq)
+        const ucRes = await this.usecase.createUser(ucReq)
 
         if (ucRes.error) {
             const http = mapErrorToHttp(ucRes.error)
@@ -61,18 +51,16 @@ class CreateUserController {
 }
 
 class GetUserByIDController {
+    constructor(private usecase: GetUserByIDUseCase) {}
+
     async getUserByID(req: Request, res: Response) {
         const { userID } = req.params
 
         const ucReq = new GetUserByIDUseCaseRequest(userID)
-        const common = new GetUserByIDUseCaseCommon()
-        const validate = new GetUserByIDUseCaseValidate()
-        const repository = new GetUserByIDUseCaseRepository()   
-        
-        const usecase = new GetUserByIDUseCase(common, repository, validate)
 
-        const ucRes = await usecase.getUserByID(ucReq)  
-       if (ucRes.error) {
+        const ucRes = await this.usecase.getUserByID(ucReq)
+
+        if (ucRes.error) {
             const http = mapErrorToHttp(ucRes.error)
             return res.status(http.statusCode).json(http.body)
         }
@@ -82,6 +70,8 @@ class GetUserByIDController {
 }
 
 class LogoutController {
+    constructor(private usecase: LogoutUserUseCase) {}
+
     async logout(req: Request, res: Response) {
         const authHeader = req.headers.authorization ?? ''
         const accessToken = authHeader.replace('Bearer ', '')
@@ -90,13 +80,8 @@ class LogoutController {
         const userID = user?.ID ?? ''
 
         const ucReq = new LogoutUserUseCaseRequest(userID, accessToken, refreshToken)
-        const common = new LogoutUserUseCaseCommon()
-        const validate = new LogoutUserUseCaseValidate()
-        const repository = new LogoutUserUseCaseRepository()
 
-        const usecase = new LogoutUserUseCase(common, repository, validate)
-
-        const ucRes = await usecase.logout(ucReq)
+        const ucRes = await this.usecase.logout(ucReq)
 
         if (ucRes.error) {
             const http = mapErrorToHttp(ucRes.error)
