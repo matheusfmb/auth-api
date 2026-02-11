@@ -12,6 +12,16 @@ function checkListEmpty(list: any[]): ValidationError | null {
   return null
 }
 
+function validateEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
+}
+
+function validatePasswordStrength(password: string): boolean {
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+  return passwordRegex.test(password)
+}
+
 function mapValidationErrorToEntity(validationError: ValidationError): ErrorEntity {
   if (validationError.type === ValidationErrorType.CONFLICT) {
     return new ConflictError(validationError.message)
@@ -26,5 +36,7 @@ function mapValidationErrorToEntity(validationError: ValidationError): ErrorEnti
 export {
   checkStringEmpty,
   mapValidationErrorToEntity,
-  checkListEmpty
+  checkListEmpty,
+  validateEmail,
+  validatePasswordStrength
 }
