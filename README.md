@@ -78,6 +78,8 @@ A API expõe rotas para as seguintes funcionalidades. Para detalhes completos so
 
 - **Autenticação (`/auth`):**
   - `POST /login`: Autentica as credenciais do usuário e retorna um `accessToken` JWT e refreshToken nos cookies.
+   - `POST /logout`: Revoga o par de tokens ativo (acesso + refresh) e limpa o cookie do refresh token.
+   - **Rotação e segurança:** O middleware valida a `jti`, consulta a blacklist e, quando necessário, emite um novo par com a mesma `jti` e versão incrementada para detectar replay e atividade suspeita.
 
 - **Usuários (`/users`):**
   - `POST /create`: Rota pública para registro de novos usuários no sistema.
@@ -89,7 +91,9 @@ A API expõe rotas para as seguintes funcionalidades. Para detalhes completos so
 
 ## 🔍 Observabilidade e Segurança
 
-- **Cookies e tokens:** Como o repositório é de portfólio, o `refreshToken` permanece com `secure: false` para facilitar os testes locais. Em produção, a configuração prevista inclui `secure: true`, `sameSite=strict` ou `sameSite=lax`  e política de rotação controlada.
+- **Cookies e tokens:** Como o repositório é de portfólio, o `refreshToken` permanece com `secure: false` para facilitar os testes locais. Em produção, a configuração prevista inclui `secure: true`, `sameSite=strict` ou `sameSite=lax` e a política de rotação obrigatória de tokens.
+- **Rotação automática:** O middleware de autenticação valida `jti`, verifica blacklist e roda a rotação com versão incrementada, detectando automaticamente tokens comprometidos e obrigando o login quando sentidos divergentes ocorrem.
+- **Validação e enumeração:** O cadastro exige email válido e senhas fortes, e todos os erros de login/criação usam mensagens genéricas (`Invalid email or password`) para evitar user enumeration.
 - **Variáveis sensíveis:** Segredos e chaves JWT não estão versionados em `.env` por escolha deliberada. Em um ambiente real, os valores seriam injetados via variáveis de ambiente.
 
 ## 🗓️ Para Implementar

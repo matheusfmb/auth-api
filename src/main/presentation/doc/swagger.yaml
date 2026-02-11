@@ -69,6 +69,10 @@ paths:
                 properties:
                   accessToken:
                     type: string
+                  message:
+                    type: string
+                    example: "Refresh token set via cookie."
+    
         '401':
           description: Credenciais inválidas
   /users/create:
@@ -115,3 +119,24 @@ paths:
           description: Não autorizado
         '404':
           description: Usuário não encontrado
+
+  /auth/logout:
+    post:
+      summary: Logout seguro
+      tags:
+        - Auth
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout realizado e tokens revogados
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logged out successfully"
+        '401':
+          description: Token inválido ou expirado
