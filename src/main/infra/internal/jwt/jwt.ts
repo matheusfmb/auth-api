@@ -1,9 +1,12 @@
 import jwt from 'jsonwebtoken'
+import { v4 } from 'uuid'
 import { TokenPayloadEntity } from '../../../core/entities/token'
 import { SECRET_KEY, EXPIRES_IN, LONG_DURATION_EXPIRES_IN } from './config'
 
 function encrypt(data: TokenPayloadEntity, expiresIn: any): string {
-    const token = jwt.sign({ ...data }, SECRET_KEY, { expiresIn })
+    const jti = data.jti || v4()
+    
+    const token = jwt.sign({ ...data, jti }, SECRET_KEY, { expiresIn })
 
     return token
 }
